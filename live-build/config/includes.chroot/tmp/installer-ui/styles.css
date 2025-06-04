@@ -1,0 +1,74 @@
+/* Custom styles for TwinaOS Installer */
+
+.step {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.step.hidden {
+    display: none !important;
+}
+
+/* Smooth progress bar animation */
+#progress-bar {
+    transition: width 0.5s ease-in-out;
+}
+
+/* Custom scrollbar for install log */
+#install-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+#install-log::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+#install-log::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+#install-log::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Disk selection styling */
+.disk-option {
+    transition: all 0.2s ease-in-out;
+}
+
+.disk-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.disk-option.selected {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+/* Loading animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}

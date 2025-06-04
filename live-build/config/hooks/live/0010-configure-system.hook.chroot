@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# TwinaOS Live System Configuration Hook
+set -e
+
+echo "Configuring TwinaOS live system..."
+
+# Create installer user
+useradd -m -s /bin/bash -G sudo installer
+echo "installer:installer" | chpasswd
+
+# Configure automatic login for installer user
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/override.conf << EOF
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin installer --noclear %I \$TERM
+EOF
+
+# Install TwinaOS installer files
+echo "Installing TwinaOS installer components..."
+mkdir -p /opt/twinaos
+
+# Copy installer components from /tmp (included via includes.chroot)
+if [ -d "/tmp/installer-ui" ]; then
+    cp -r /tmp/installer-ui /opt/twinaos/
+    echo "Copied installer-ui"
+fi
+
+if [ -d "/tmp/installer-backend" ]; then
+    cp -r /tmp/installer-backend /opt/twinaos/
+    echo "Copied installer-backend"
+fi
+
+if [ -d "/tmp/scripts" ]; then
+    cp -r /tmp/scripts /opt/twinaos/
+    echo "Copied scripts"
+fi
+
+# Install Plymouth theme
+if [ -d "/tmp/plymouth" ]; then
+    echo "Installing Plymouth theme..."
+    cp -r /tmp/plymouth/* /usr/share/plymouth/themes/
+    echo "Copied Plymouth theme"
+fi
+
+# Set permissions
+chown -R installer:installer /opt/twinaos
+find /opt/twinaos/scripts -name "*.sh" -exec chmod +x {} \;
+find /opt/twinaos/installer-backend -name "*.py" -exec chmod +x {} \;
+
+# Install Python dependencies
+pip3 install flask flask-cors psutil
+
+# Create autostart script
+mkdir -p /home/installer/.config/autostart
+cat > /home/installer/.config/autostart/twinaos-installer.desktop << EOF
+[Desktop Entry]
+Type=Application
+Name=TwinaOS Installer
+Exec=/opt/twinaos/scripts/start-installer.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Configure openbox autostart
+mkdir -p /home/installer/.config/openbox
+cat > /home/installer/.config/openbox/autostart << EOF
+# Start the TwinaOS installer
+/opt/twinaos/scripts/start-installer.sh &
+EOF
+
+chown -R installer:installer /home/installer/.config
+
+# Configure Plymouth theme
+if [ -d "/usr/share/plymouth/themes/twinaos" ]; then
+    echo "Configuring Plymouth theme..."
+    update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/twinaos/twinaos.plymouth 100
+    update-alternatives --set default.plymouth /usr/share/plymouth/themes/twinaos/twinaos.plymouth
+    
+    # Update initramfs to include new theme
+    update-initramfs -u
+    echo "Plymouth theme configured"
+fi
+
+echo "TwinaOS live system configured successfully!"

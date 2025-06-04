@@ -1,0 +1,58 @@
+# TwinaOS Plymouth Animation setup
+# Custom animated boot screen with frame-based animation
+
+# Screen dimensions
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+# Animation setup
+animation_frames = 201;  # Total number of frames (0-99)
+animation_speed = 2;     # Frame delay (higher = slower)
+current_frame = 0;
+frame_counter = 0;
+
+# Load all animation frames
+for (i = 0; i < animation_frames; i++) {
+    # Format frame number with 3-digit zero padding
+    frame_number = "";
+    if (i < 10) {
+        frame_number = "00" + i;
+    } else if (i < 100) {
+        frame_number = "0" + i;
+    } else {
+        frame_number = "" + i;
+    }
+    frame_filename = "frames/frame-" + frame_number + ".png";
+    animation[i] = Image(frame_filename);
+}
+
+# Create animation sprite
+animation_sprite = Sprite();
+animation_sprite.SetImage(animation[0]);
+
+# Center the animation
+if (animation[0]) {
+    animation_x = screen_width / 2 - animation[0].GetWidth() / 2;
+    animation_y = screen_height / 2 - animation[0].GetHeight() / 2;
+    animation_sprite.SetPosition(animation_x, animation_y, 0);
+}
+
+# Main animation function
+fun refresh_callback() {
+    # Update frame animation
+    frame_counter++;
+    if (frame_counter >= animation_speed) {
+        frame_counter = 0;
+        current_frame++;
+        if (current_frame >= animation_frames) {
+            current_frame = 0;  # Loop animation
+        }
+        
+        # Update animation frame
+        if (animation[current_frame]) {
+            animation_sprite.SetImage(animation[current_frame]);
+        }
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);

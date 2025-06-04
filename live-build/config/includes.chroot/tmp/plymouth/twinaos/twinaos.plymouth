@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=TwinaOS
+Description=Clean, modern boot splash for TwinaOS
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/twinaos
+ScriptFile=/usr/share/plymouth/themes/twinaos/twinaos.script

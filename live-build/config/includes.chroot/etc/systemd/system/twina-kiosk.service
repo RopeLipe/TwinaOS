@@ -12,7 +12,7 @@ Environment=XDG_SESSION_TYPE=wayland
 Environment=WAYLAND_DISPLAY=wayland-0
 ExecStartPre=/bin/mkdir -p /run/user/1000
 ExecStartPre=/bin/chown user:user /run/user/1000
-ExecStart=/usr/bin/cage -- /usr/bin/midori
+ExecStart=/usr/bin/cage -- /usr/bin/midori --app=file:///opt/twina/index.html
 Restart=always
 RestartSec=3
 StandardOutput=journal

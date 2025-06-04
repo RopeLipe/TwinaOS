@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Install local .deb packages
+# This hook installs packages from the packages.chroot directory
+
+set -e
+
+echo "I: Installing local .deb packages"
+
+# Install Midori from local .deb package
+if [ -f /tmp/packages.chroot/midori_11.5.2-1_amd64.deb ]; then
+    echo "I: Installing Midori from local .deb package"
+    dpkg -i /tmp/packages.chroot/midori_11.5.2-1_amd64.deb || true
+    
+    # Fix any dependency issues
+    apt-get install -f -y
+    
+    echo "I: Midori installation completed"
+else
+    echo "W: Midori .deb package not found"
+fi
+
+echo "I: Local package installation completed"

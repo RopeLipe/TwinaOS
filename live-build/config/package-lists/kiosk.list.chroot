@@ -1,5 +1,4 @@
-# Midori web browser
-midori
+# Midori web browser (installed from local .deb package)
 
 # Audio support (for web content)
 pulseaudio

@@ -32,11 +32,6 @@ if [ -d "/tmp/installer-backend" ]; then
     echo "Copied installer-backend"
 fi
 
-if [ -d "/tmp/scripts" ]; then
-    cp -r /tmp/scripts /opt/twinaos/
-    echo "Copied scripts"
-fi
-
 # Install Plymouth theme
 if [ -d "/tmp/plymouth" ]; then
     echo "Installing Plymouth theme..."
@@ -46,11 +41,72 @@ fi
 
 # Set permissions
 chown -R installer:installer /opt/twinaos
-find /opt/twinaos/scripts -name "*.sh" -exec chmod +x {} \;
 find /opt/twinaos/installer-backend -name "*.py" -exec chmod +x {} \;
 
-# Install Python dependencies
-pip3 install flask flask-cors psutil
+# Install Python dependencies (use requirements.txt for consistency)
+cd /opt/twinaos/installer-backend
+pip3 install -r requirements.txt
+
+# Create consolidated installer startup script
+cat > /opt/twinaos/start-twinaos-installer.sh << 'EOF'
+#!/bin/bash
+# TwinaOS Consolidated Installer Startup Script
+set -e
+
+INSTALLER_DIR="/opt/twinaos"
+LOG_FILE="/tmp/twinaos-installer.log"
+
+echo "Starting TwinaOS Installer..." | tee $LOG_FILE
+
+# Wait for network to be ready
+echo "Waiting for network..." | tee -a $LOG_FILE
+for i in {1..30}; do
+    if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+        echo "Network is ready" | tee -a $LOG_FILE
+        break
+    fi
+    sleep 1
+done
+
+# Start the Flask backend (serves both API and static files)
+echo "Starting installer backend..." | tee -a $LOG_FILE
+cd $INSTALLER_DIR/installer-backend
+export TWINAOS_DEV_MODE=1
+python3 app.py &
+BACKEND_PID=$!
+
+# Wait for backend to start
+echo "Waiting for backend to start..." | tee -a $LOG_FILE
+for i in {1..30}; do
+    if curl -s http://localhost:3000/api/health >/dev/null 2>&1; then
+        echo "Backend is ready" | tee -a $LOG_FILE
+        break
+    fi
+    sleep 1
+done
+
+# Start X server and desktop environment
+if ! pgrep -x "Xorg" > /dev/null; then
+    echo "Starting X server..." | tee -a $LOG_FILE
+    # Start X with openbox as window manager
+    startx /usr/bin/openbox-session -- :0 vt7 &
+    sleep 3
+else
+    echo "X server already running" | tee -a $LOG_FILE
+fi
+
+# Wait for X to be ready
+sleep 2
+
+# Open Firefox to the installer (using DISPLAY variable)
+echo "Starting Firefox..." | tee -a $LOG_FILE
+DISPLAY=:0 firefox --new-instance --kiosk http://localhost:3000 &
+
+# Keep the script running
+wait $BACKEND_PID
+EOF
+
+chmod +x /opt/twinaos/start-twinaos-installer.sh
 
 # Create autostart script
 mkdir -p /home/installer/.config/autostart
@@ -58,7 +114,7 @@ cat > /home/installer/.config/autostart/twinaos-installer.desktop << EOF
 [Desktop Entry]
 Type=Application
 Name=TwinaOS Installer
-Exec=/opt/twinaos/scripts/start-installer.sh
+Exec=/opt/twinaos/start-twinaos-installer.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -68,7 +124,7 @@ EOF
 mkdir -p /home/installer/.config/openbox
 cat > /home/installer/.config/openbox/autostart << EOF
 # Start the TwinaOS installer
-/opt/twinaos/scripts/start-installer.sh &
+/opt/twinaos/start-twinaos-installer.sh &
 EOF
 
 chown -R installer:installer /home/installer/.config

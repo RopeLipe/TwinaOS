@@ -6,7 +6,7 @@ screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
 # Animation setup
-animation_frames = 201;  # Total number of frames (0-99)
+animation_frames = 201;  # Total number of frames (0-200)
 animation_speed = 2;     # Frame delay (higher = slower)
 current_frame = 0;
 frame_counter = 0;

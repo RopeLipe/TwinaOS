@@ -27,9 +27,9 @@ firmware-linux-nonfree
 firmware-misc-nonfree
 
 # X11 and window manager
-xorg-server
+xorg
+xinit
 openbox
-xdm
 firefox-esr
 
 # Python and web server

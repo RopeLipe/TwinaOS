@@ -17,26 +17,16 @@ ExecStart=
 ExecStart=-/sbin/agetty --autologin installer --noclear %I \$TERM
 EOF
 
-# Install TwinaOS installer files
-echo "Installing TwinaOS installer components..."
-mkdir -p /opt/twinaos
+# Set up TwinaOS installer files (already placed by includes.chroot)
+echo "Configuring TwinaOS installer components..."
 
-# Copy installer components from /tmp (included via includes.chroot)
-if [ -d "/tmp/installer-ui" ]; then
-    cp -r /tmp/installer-ui /opt/twinaos/
-    echo "Copied installer-ui"
-fi
-
-if [ -d "/tmp/installer-backend" ]; then
-    cp -r /tmp/installer-backend /opt/twinaos/
-    echo "Copied installer-backend"
-fi
-
-# Install Plymouth theme
-if [ -d "/tmp/plymouth" ]; then
-    echo "Installing Plymouth theme..."
-    cp -r /tmp/plymouth/* /usr/share/plymouth/themes/
-    echo "Copied Plymouth theme"
+# Verify installer files are in place (they should be copied by includes.chroot)
+if [ ! -d "/opt/twinaos/installer-ui" ] || [ ! -d "/opt/twinaos/installer-backend" ]; then
+    echo "Error: Installer files not found in /opt/twinaos/"
+    echo "Expected structure:"
+    echo "  /opt/twinaos/installer-ui/"
+    echo "  /opt/twinaos/installer-backend/"
+    exit 1
 fi
 
 # Set permissions
@@ -129,7 +119,7 @@ EOF
 
 chown -R installer:installer /home/installer/.config
 
-# Configure Plymouth theme
+# Configure Plymouth theme (already placed by includes.chroot)
 if [ -d "/usr/share/plymouth/themes/twinaos" ]; then
     echo "Configuring Plymouth theme..."
     update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/twinaos/twinaos.plymouth 100
@@ -138,6 +128,8 @@ if [ -d "/usr/share/plymouth/themes/twinaos" ]; then
     # Update initramfs to include new theme
     update-initramfs -u
     echo "Plymouth theme configured"
+else
+    echo "Warning: Plymouth theme not found at /usr/share/plymouth/themes/twinaos"
 fi
 
 echo "TwinaOS live system configured successfully!"

@@ -1,0 +1,7 @@
+# Plymouth boot splash
+plymouth
+plymouth-themes
+
+# Additional boot tools
+console-setup
+keyboard-configuration

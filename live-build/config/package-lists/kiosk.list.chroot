@@ -1,0 +1,17 @@
+# Midori web browser
+midori
+
+# Audio support (for web content)
+pulseaudio
+pulseaudio-utils
+alsa-utils
+
+# Fonts for better rendering
+fonts-dejavu-core
+fonts-liberation
+fonts-noto-core
+
+# Basic utilities
+curl
+wget
+ca-certificates

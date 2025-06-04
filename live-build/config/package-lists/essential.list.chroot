@@ -1,0 +1,24 @@
+# Essential system packages
+live-boot
+live-config
+live-config-systemd
+
+# Kernel and firmware
+linux-image-amd64
+firmware-linux
+firmware-linux-free
+firmware-linux-nonfree
+firmware-misc-nonfree
+
+# Basic system tools
+sudo
+systemd
+systemd-sysv
+dbus
+udev
+initramfs-tools
+
+# Network support
+network-manager
+wpasupplicant
+wireless-tools

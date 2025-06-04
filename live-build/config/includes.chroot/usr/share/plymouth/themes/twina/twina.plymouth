@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=TwinaOS
+Description=TwinaOS Boot Theme
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/twina
+ScriptFile=/usr/share/plymouth/themes/twina/twina.script

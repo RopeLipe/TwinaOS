@@ -9,7 +9,7 @@ echo "I: Configuring TwinaOS kiosk environment"
 
 # Create user account for kiosk
 if ! id "user" &>/dev/null; then
-    useradd -m -s /bin/bash -G audio,video,input,plugdev user
+    useradd -m -s /bin/bash -G audio,video,input,plugdev,render user
     echo "user:live" | chpasswd
 fi
 
@@ -41,12 +41,11 @@ chown 1000:1000 /run/user/1000
 # Set up environment for user
 cat > /home/user/.profile << 'EOF'
 export XDG_RUNTIME_DIR=/run/user/1000
-export XDG_SESSION_TYPE=wayland
-export WAYLAND_DISPLAY=wayland-0
 
 # Start kiosk session if on tty1
 if [ "$(tty)" = "/dev/tty1" ]; then
-    exec /usr/bin/cage -- /usr/bin/midori --app=https://localhost:8000
+    # Ensure we're running on a real TTY
+    exec /usr/bin/cage -- /usr/bin/midori --app=https://localhost:5000
 fi
 EOF
 

@@ -1,26 +1,24 @@
-# TwinaOS Plymouth Boot Script
-# Minimalist boot splash - logo only
+ # Nice colour on top of the screen fading to
+Window.SetBackgroundTopColor (0.0, 0.00, 0.0);
 
-# Load the logo image
-logo_image = Image("BootLogo.png");
-logo_sprite = Sprite(logo_image);
+# an equally nice colour on the bottom
+Window.SetBackgroundBottomColor (0.0, 0.00, 0.0);
 
-# Get screen dimensions
-screen_width = Window.GetWidth();
-screen_height = Window.GetHeight();
+# Image animation loop
+for (i = 1; i < {{200}}; i++)
+  flyingman_image[i] = Image("image-" + i + ".png");
+flyingman_sprite = Sprite();
 
-# Center the logo
-logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
-logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2);
 
-# Display normal mode
-fun display_normal_callback() {
-    logo_sprite.SetOpacity(1);
-}
-Plymouth.SetDisplayNormalFunction(display_normal_callback);
+flyingman_sprite.SetX(Window.GetWidth() / 2 - flyingman_image[1].GetWidth() / 2); # Place in the centre
+flyingman_sprite.SetY(Window.GetHeight() / 2 - flyingman_image[1].GetHeight() / 2);
 
-# Quit function
-fun quit_callback() {
-    logo_sprite.SetOpacity(0);
-}
-Plymouth.SetQuitFunction(quit_callback);
+progress = 1;
+
+fun refresh_callback ()
+  {
+    flyingman_sprite.SetImage(flyingman_image[Math.Int(progress / 3) % {{200}}]);
+    progress++;
+  }
+  
+Plymouth.SetRefreshFunction (refresh_callback);

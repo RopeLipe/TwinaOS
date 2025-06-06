@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=TwinaOS Demo
+Comment=TwinaOS Live System Demo Application
+Exec=/usr/local/bin/twinaos-app
+Icon=applications-utilities
+Terminal=false
+Type=Application
+Categories=System;
+StartupWMClass=twinaos-app

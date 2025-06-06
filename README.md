@@ -9,7 +9,8 @@ A minimal Debian-based live system with Wayland, Cage compositor, and PipeWire.
 - **PipeWire audio system** (replaces PulseAudio/ALSA)
 - **Full networking support** (WiFi, Ethernet, Bluetooth)
 - **Auto-login as root**
-- **Auto-launch Cage compositor**
+- **Auto-launch Cage compositor** with GTK4 demo application
+- **Basic GTK4 application** showing system information
 
 ## Building
 
@@ -35,8 +36,9 @@ The build process will create an ISO file (typically named `live-image-amd64.hyb
 
 1. Boot from the created ISO
 2. System will auto-login as root
-3. Cage compositor will start automatically
-4. You'll have a minimal Wayland environment ready
+3. Cage compositor will start automatically with a GTK4 demo application
+4. You'll see a welcome screen with system information
+5. The application demonstrates basic GTK4 functionality on Wayland
 
 ## Networking
 
@@ -56,6 +58,8 @@ PipeWire is configured as the audio system. No additional configuration should b
 
 ```
 ┌─────────────────┐
+│   GTK4 Demo App │ ← Welcome screen application
+├─────────────────┤
 │   Cage (Wayland │ ← Auto-launched via systemd
 │   Compositor)   │
 ├─────────────────┤
@@ -75,9 +79,21 @@ PipeWire is configured as the audio system. No additional configuration should b
 - `auto/` - Live-build auto scripts
 - `config/package-lists/` - Package definitions
 - `config/hooks/live/` - Build-time configuration scripts
+- `config/includes.chroot/usr/local/src/twinaos-app/` - GTK4 demo application source
 - `build.sh` - Main build script
+
+## GTK4 Application
+
+The included demo application shows:
+- Welcome screen with TwinaOS branding
+- System information display
+- Basic GTK4 widgets (labels, buttons, dialogs)
+- Proper Wayland integration
+
+Source code is located in `config/includes.chroot/usr/local/src/twinaos-app/` and gets compiled during the build process.
 
 ## Customization
 
 To add more packages, edit `config/package-lists/twinaos.list.chroot`.
 To modify system configuration, edit `config/hooks/live/0010-twinaos-config.hook.chroot`.
+To customize the GTK4 app, edit the source in `config/includes.chroot/usr/local/src/twinaos-app/main.c`.

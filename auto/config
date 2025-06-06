@@ -2,9 +2,7 @@
 
 lb config noauto \
     --distribution bookworm \
-    --debian-installer live \
-    --debian-installer-gui false \
-    --debian-installer-distribution bookworm \
+    --debian-installer none \
     --archive-areas "main contrib non-free non-free-firmware" \
     --bootloaders syslinux \
     --linux-flavours amd64 \

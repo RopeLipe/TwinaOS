@@ -14,7 +14,7 @@ Type=idle
 EOF
 
 # Create cage startup script
-cat > /usr/local/bin/start-cage << 'EOF'
+cat > /usr/local/bin/cage << 'EOF'
 #!/bin/bash
 
 # Wait for graphics to be ready
@@ -33,11 +33,11 @@ systemctl --user --global enable pipewire.service
 systemctl --user --global enable pipewire-pulse.service
 systemctl --user --global enable wireplumber.service
 
-# Start Cage compositor (will show black screen since no apps specified)
-exec /usr/bin/cage
+# Start Cage compositor with our GTK4 application
+exec /usr/bin/cage -- /usr/local/bin/twinaos-app
 EOF
 
-chmod +x /usr/local/bin/start-cage
+chmod +x /usr/local/bin/cage
 
 # Create systemd service for auto-launching cage
 cat > /etc/systemd/system/cage.service << 'EOF'
@@ -50,7 +50,7 @@ Wants=systemd-logind.service
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/local/bin/start-cage
+ExecStart=/usr/local/bin/cage
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -115,5 +115,11 @@ EOF
 
 # Ensure proper permissions
 chmod 644 /root/.bashrc
+
+# Build and install GTK4 application
+echo "I: Building TwinaOS GTK4 application"
+cd /usr/local/src/twinaos-app
+make
+make install
 
 echo "I: TwinaOS Live System configuration completed"

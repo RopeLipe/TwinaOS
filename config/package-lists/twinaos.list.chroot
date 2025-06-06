@@ -56,3 +56,12 @@ mesa-utils
 libgl1-mesa-dri
 xserver-xorg-video-all
 firmware-amd-graphics
+
+# GTK4 and development tools
+libgtk-4-1
+libgtk-4-dev
+gcc
+build-essential
+pkg-config
+libglib2.0-dev
+gir1.2-gtk-4.0

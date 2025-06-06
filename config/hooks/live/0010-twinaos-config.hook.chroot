@@ -1,0 +1,119 @@
+#!/bin/bash
+
+set -e
+
+echo "I: Configuring TwinaOS Live System"
+
+# Enable root auto-login for Getty
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/override.conf << 'EOF'
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --noissue --autologin root %I $TERM
+Type=idle
+EOF
+
+# Create cage startup script
+cat > /usr/local/bin/start-cage << 'EOF'
+#!/bin/bash
+
+# Wait for graphics to be ready
+sleep 2
+
+# Set environment variables for Wayland
+export XDG_RUNTIME_DIR="/run/user/0"
+export WAYLAND_DISPLAY="wayland-0"
+
+# Create runtime directory
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR"
+
+# Start PipeWire services
+systemctl --user --global enable pipewire.service
+systemctl --user --global enable pipewire-pulse.service
+systemctl --user --global enable wireplumber.service
+
+# Start Cage compositor (will show black screen since no apps specified)
+exec /usr/bin/cage
+EOF
+
+chmod +x /usr/local/bin/start-cage
+
+# Create systemd service for auto-launching cage
+cat > /etc/systemd/system/cage.service << 'EOF'
+[Unit]
+Description=Cage Wayland Compositor
+After=systemd-logind.service
+Wants=systemd-logind.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/bin/start-cage
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Wayland environment
+Environment=XDG_RUNTIME_DIR=/run/user/0
+Environment=WAYLAND_DISPLAY=wayland-0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable cage service
+systemctl enable cage.service
+
+# Enable NetworkManager
+systemctl enable NetworkManager.service
+systemctl enable bluetooth.service
+
+# Configure PipeWire as default audio system
+systemctl --global enable pipewire.service
+systemctl --global enable pipewire-pulse.service
+systemctl --global enable wireplumber.service
+
+# Create simple NetworkManager configuration
+cat > /etc/NetworkManager/NetworkManager.conf << 'EOF'
+[main]
+plugins=ifupdown,keyfile
+dns=default
+
+[ifupdown]
+managed=false
+
+[device]
+wifi.scan-rand-mac-address=no
+EOF
+
+# Set root password to empty (allow passwordless login)
+passwd -d root
+
+# Configure live user settings
+echo "root:x:0:0:root:/root:/bin/bash" > /etc/passwd.new
+grep -v "^root:" /etc/passwd >> /etc/passwd.new || true
+mv /etc/passwd.new /etc/passwd
+
+# Create basic .bashrc for root
+cat > /root/.bashrc << 'EOF'
+# Basic bashrc for TwinaOS Live
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PS1='\u@\h:\w\$ '
+
+# Aliases
+alias ll='ls -la'
+alias la='ls -la'
+alias l='ls -l'
+
+echo "Welcome to TwinaOS Live System"
+echo "Cage Wayland compositor should start automatically"
+echo "Use 'systemctl status cage' to check compositor status"
+EOF
+
+# Ensure proper permissions
+chmod 644 /root/.bashrc
+
+echo "I: TwinaOS Live System configuration completed"

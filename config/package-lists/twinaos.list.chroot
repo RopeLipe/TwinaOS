@@ -1,0 +1,58 @@
+# Core system packages
+live-boot
+live-config
+systemd-sysv
+
+# Wayland and Cage compositor
+wayland-protocols
+libwayland-client0
+libwayland-server0
+cage
+
+# PipeWire audio system
+pipewire
+pipewire-pulse
+pipewire-alsa
+wireplumber
+
+# Kernel and firmware
+linux-image-amd64
+firmware-linux
+firmware-linux-nonfree
+firmware-misc-nonfree
+
+# Networking packages
+network-manager
+wpasupplicant
+wireless-tools
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+ethtool
+iproute2
+iputils-ping
+
+# Bluetooth support
+bluetooth
+bluez
+bluez-tools
+pulseaudio-module-bluetooth
+
+# Basic utilities
+bash-completion
+curl
+wget
+nano
+htop
+psmisc
+procps
+util-linux
+coreutils
+udev
+
+# Graphics drivers
+mesa-utils
+libgl1-mesa-dri
+xserver-xorg-video-all
+firmware-amd-graphics

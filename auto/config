@@ -1,0 +1,20 @@
+#!/bin/bash
+
+lb config noauto \
+    --distribution bookworm \
+    --debian-installer live \
+    --debian-installer-gui false \
+    --debian-installer-distribution bookworm \
+    --archive-areas "main contrib non-free non-free-firmware" \
+    --bootloaders syslinux \
+    --linux-flavours amd64 \
+    --memtest none \
+    --iso-application "TwinaOS Live" \
+    --iso-publisher "TwinaOS" \
+    --iso-volume "TwinaOS_Live" \
+    --cache true \
+    --apt-recommends false \
+    --apt-secure true \
+    --system live \
+    --mode debian \
+    "${@}"

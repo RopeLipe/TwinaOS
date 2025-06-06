@@ -21,6 +21,17 @@ firmware-linux
 firmware-linux-nonfree
 firmware-misc-nonfree
 
+# Graphics and DRM support
+libdrm2
+libdrm-amdgpu1
+libdrm-intel1
+libdrm-nouveau2
+libdrm-radeon1
+libegl1-mesa
+libgbm1
+libgl1-mesa-glx
+udev
+
 # Networking packages
 network-manager
 wpasupplicant
@@ -37,7 +48,7 @@ iputils-ping
 bluetooth
 bluez
 bluez-tools
-pulseaudio-module-bluetooth
+libspa-0.2-bluetooth
 
 # Basic utilities
 bash-completion

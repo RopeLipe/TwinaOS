@@ -13,55 +13,75 @@ ExecStart=-/sbin/agetty --noissue --autologin root %I $TERM
 Type=idle
 EOF
 
+# Create a non-root user for cage
+useradd -m -s /bin/bash -G audio,video,input,render,dialout twinaos || true
+echo "twinaos:twinaos" | chpasswd
+
 # Create cage startup script
-cat > /usr/local/bin/cage << 'EOF'
+cat > /usr/local/bin/start-cage << 'EOF'
 #!/bin/bash
 
-# Wait for graphics to be ready
-sleep 2
+# Wait for graphics and udev to be ready
+sleep 5
+
+# Ensure graphics devices are available
+modprobe drm 2>/dev/null || true
+modprobe i915 2>/dev/null || true
+modprobe amdgpu 2>/dev/null || true
+modprobe radeon 2>/dev/null || true
+modprobe nouveau 2>/dev/null || true
+
+# Set proper permissions for graphics devices
+chmod 666 /dev/dri/* 2>/dev/null || true
+chmod 666 /dev/fb* 2>/dev/null || true
+chown root:video /dev/dri/* 2>/dev/null || true
 
 # Set environment variables for Wayland
-export XDG_RUNTIME_DIR="/run/user/0"
+export XDG_RUNTIME_DIR="/run/user/1000"
 export WAYLAND_DISPLAY="wayland-0"
+export XDG_SESSION_TYPE="wayland"
+export GDK_BACKEND="wayland"
+export QT_QPA_PLATFORM="wayland"
 
-# Create runtime directory
+# Create runtime directory for twinaos user
 mkdir -p "$XDG_RUNTIME_DIR"
+chown twinaos:twinaos "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 
-# Start PipeWire services
-systemctl --user --global enable pipewire.service
-systemctl --user --global enable pipewire-pulse.service
-systemctl --user --global enable wireplumber.service
-
-# Start Cage compositor with our GTK4 application
-exec /usr/bin/cage -- /usr/local/bin/twinaos-app
+# Start cage as twinaos user with our GTK4 application
+su - twinaos -c "
+export XDG_RUNTIME_DIR=/run/user/1000
+export WAYLAND_DISPLAY=wayland-0
+export XDG_SESSION_TYPE=wayland
+export GDK_BACKEND=wayland
+cd /home/twinaos
+/usr/bin/cage -- /usr/local/bin/twinaos-app
+"
 EOF
 
-chmod +x /usr/local/bin/cage
+chmod +x /usr/local/bin/start-cage
 
 # Create systemd service for auto-launching cage
 cat > /etc/systemd/system/cage.service << 'EOF'
 [Unit]
 Description=Cage Wayland Compositor
-After=systemd-logind.service
+After=systemd-logind.service graphical.target systemd-udev-settle.service
 Wants=systemd-logind.service
+Requires=systemd-udev-settle.service
 
 [Service]
 Type=simple
 User=root
 Group=root
-ExecStart=/usr/local/bin/cage
+ExecStart=/usr/local/bin/start-cage
 Restart=on-failure
-RestartSec=5
+RestartSec=10
 StandardOutput=journal
 StandardError=journal
-
-# Wayland environment
-Environment=XDG_RUNTIME_DIR=/run/user/0
-Environment=WAYLAND_DISPLAY=wayland-0
+Environment=TERM=xterm
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
 EOF
 
 # Enable cage service
@@ -75,6 +95,38 @@ systemctl enable bluetooth.service
 systemctl --global enable pipewire.service
 systemctl --global enable pipewire-pulse.service
 systemctl --global enable wireplumber.service
+
+# Enable PipeWire for twinaos user
+sudo -u twinaos systemctl --user enable pipewire.service
+sudo -u twinaos systemctl --user enable pipewire-pulse.service
+sudo -u twinaos systemctl --user enable wireplumber.service
+
+# Create runtime directory structure
+mkdir -p /run/user/1000
+chown twinaos:twinaos /run/user/1000
+chmod 700 /run/user/1000
+
+# Create debug script for troubleshooting
+cat > /usr/local/bin/debug-graphics << 'EOF'
+#!/bin/bash
+echo "=== Graphics Debug Information ==="
+echo "DRM devices:"
+ls -la /dev/dri/ 2>/dev/null || echo "No DRM devices found"
+echo
+echo "Framebuffer devices:"
+ls -la /dev/fb* 2>/dev/null || echo "No framebuffer devices found"
+echo
+echo "Graphics modules loaded:"
+lsmod | grep -E "(drm|i915|amdgpu|radeon|nouveau)"
+echo
+echo "Graphics cards detected:"
+lspci | grep -i vga
+echo
+echo "Cage test (as twinaos user):"
+su - twinaos -c "XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/cage --help" 2>&1
+EOF
+
+chmod +x /usr/local/bin/debug-graphics
 
 # Create simple NetworkManager configuration
 cat > /etc/NetworkManager/NetworkManager.conf << 'EOF'
